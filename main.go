@@ -285,15 +285,7 @@ var T = template.Must(template.New("").Parse(`
 		--number-width: 3em;
 		--info-width: 20em;
 	}
-	.line.inlining {
-		background: #cef9ce;
-	}
-	.line.cannot-inline {
-		background: #ffbdbd;
-	}
-	.line.escapes-to-heap {
-		background: #bdbdff;
-	}
+	
 	.line.cannot-inline.escapes-to-heap {
 		outline: 2px dashed #f00;
 	}
@@ -314,11 +306,28 @@ var T = template.Must(template.New("").Parse(`
 	.line .info {
 		position: absolute;
 		display: block;
-		right: 0; top: 0; bottom: 0;
+		right: 3em; top: 0; bottom: 0;
 		width: var(--info-width);
 		text-overflow: ellipsis;
 		overflow: hidden;
 	}
+
+	.line .tag {
+		position: absolute;
+		display: block;
+		top: 0; bottom: 0;
+		width: 1em;
+		overflow: hidden;
+		border: 1px solid #eee;
+
+		text-align: center;
+	}
+	.line .tag1 { right: 0em; }
+	.line .tag1.active { background: #cef9ce; }
+	.line .tag2 { right: 1em; }
+	.line .tag2.active { background: #ffbdbd; }
+	.line .tag3 { right: 2em; }
+	.line .tag3.active { background: #bdbdff; }
 	</style>
 
 	<script>
@@ -345,23 +354,28 @@ var T = template.Must(template.New("").Parse(`
 				var lineel = h("div", "line");
 				lineel.appendChild(h("span", "number", line.number));
 				lineel.appendChild(h("span", "content", line.content));
-
+	
+				var fullinfo = "";
 				if(line.info.length > 0){
 					var infoel = h("span", "info", line.info[0]);
-					var fullInfo = line.info.join("\n");
-					if(fullInfo.match("cannot inline")){
-						lineel.className += " cannot-inline";
-					}
-					if(fullInfo.match("inlining call to")){
-						lineel.className += " inlining";
-					}
-					if(fullInfo.match("escapes to heap")){
-						lineel.className += " escapes-to-heap";
-					}
-
-					infoel.title = fullInfo;
+					fullinfo = line.info.join("\n");
+					infoel.title = fullinfo;
 					lineel.appendChild(infoel);
 				}
+
+				function addtag(i, f, match){
+					if(fullinfo.match(match)){
+						var el = h("span", "tag active tag" + i, f);
+						el.title = match;
+						lineel.appendChild(el);
+					} else {
+						lineel.appendChild(h("span", "tag tag" + i), "");
+					}
+				}
+
+				addtag(1, "I", "inlining");
+				addtag(2, "X", "cannot inline");
+				addtag(3, "H", "escapes to heap");
 
 				fragment.appendChild(lineel);
 			});
