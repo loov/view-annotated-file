@@ -307,11 +307,13 @@ var T = template.Must(template.New("").Parse(`
 		--number-width: 3em;
 		--info-width: 20em;
 		--tags-width: 3em;
+
+		contain: strict;
+	}
+	.line:hover {
+		background: #eee;
 	}
 	
-	.line.cannot-inline.escapes-to-heap {
-		outline: 2px dashed #f00;
-	}
 	.line .number {
 		position: absolute;
 		display: block;
