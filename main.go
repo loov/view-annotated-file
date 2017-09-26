@@ -123,6 +123,9 @@ func (index *Index) Add(lineStart, lineEnd int) {
 	if bytes.HasPrefix(line, []byte(`not substituting name`)) {
 		return
 	}
+	if bytes.HasPrefix(line, []byte(`<unknown line number>:`)) {
+		return
+	}
 
 	// C:\Go\src\example\abc.go:688: cannot inline ...
 	// C:\Go\src\example\abc.go:688:123: cannot inline ...
