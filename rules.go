@@ -27,13 +27,14 @@ type Stat struct {
 
 type Stats [statCount]int
 
-const statCount = 4
+const statCount = 5
 
 var statSpecs = [statCount]Stat{
 	{false, "cannot inline"},
 	{false, "escapes to heap"},
 	{true, "can inline"},
 	{true, "inlining call to"},
+	{true, "bounds check elided"},
 }
 
 func (stats *Stats) Add(line []byte) {
