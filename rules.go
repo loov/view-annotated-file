@@ -1,6 +1,9 @@
 package main
 
-import "bytes"
+import (
+	"bytes"
+	"strconv"
+)
 
 var ignoredLines = [...]string{
 	"\t",
@@ -21,26 +24,42 @@ var ignoredContent = [...]string{
 }
 
 type Stat struct {
-	Good    bool
-	Keyword string
+	Good []string
+	Bad  []string
 }
 
-type Stats [statCount]int
+type Stats [statCount][2]int
 
-const statCount = 5
-
-var statSpecs = [statCount]Stat{
-	{false, "cannot inline"},
-	{false, "escapes to heap"},
-	{true, "can inline"},
-	{true, "inlining call to"},
-	{true, "bounds check elided"},
+func (stats Stats) String() string {
+	r := ""
+	for i, v := range stats {
+		if i > 0 {
+			r += " "
+		}
+		r += strconv.Itoa(v[0]) + "/" + strconv.Itoa(v[1])
+	}
+	return r
 }
 
 func (stats *Stats) Add(line []byte) {
 	for i, stat := range statSpecs {
-		if bytes.Contains(line, []byte(stat.Keyword)) {
-			(*stats)[i]++
+		for _, keyword := range stat.Good {
+			if bytes.Contains(line, []byte(keyword)) {
+				(*stats)[i][0]++
+			}
+		}
+		for _, keyword := range stat.Bad {
+			if bytes.Contains(line, []byte(keyword)) {
+				(*stats)[i][1]++
+			}
 		}
 	}
+}
+
+const statCount = 3
+
+var statSpecs = [statCount]Stat{
+	{[]string{"can inline", "inlining call to"}, []string{"cannot inline"}},
+	{[]string{"does not escape"}, []string{"escapes to heap"}},
+	{[]string{"bounds check elided"}, []string{"Found IsInBounds", "Found IsSliceInBounds"}},
 }

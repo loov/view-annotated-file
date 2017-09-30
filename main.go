@@ -95,7 +95,9 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-var T = template.Must(template.New("").Parse(`
+var T = template.Must(template.New("").Funcs(template.FuncMap{
+	"mul": func(a, b int) int { return a * b },
+}).Parse(`
 <html>
 <body>
 	<select id="file" onchange="fileSelected()">
@@ -114,7 +116,7 @@ var T = template.Must(template.New("").Parse(`
 
 		--number-width: 3em;
 		--info-width: 20em;
-		--tags-width: {{.StatCount}}em;
+		--tags-width: {{mul .StatCount 2}}em;
 
 		contain: strict;
 	}
@@ -162,15 +164,20 @@ var T = template.Must(template.New("").Parse(`
 		position: absolute;
 		display: block;
 		top: 0; bottom: 0;
-		width: 1em;
+		width: 2em;
 		overflow: hidden;
 		border: 1px solid #eee;
 
 		text-align: center;
 	}
+	.line .tag .good { display: inline-block; width: 0.8em; color: #aaa; }
+	.line .tag .bad  { display: inline-block; width: 0.8em; color: #aaa; }
+	
+	.line .tag .active.good { color: #000; background: #dfd; }
+	.line .tag .active.bad  { color: #000; background: #fdd; }
+
 	{{ range $index, $stat := .Stats }}
-	.line .tag-{{$index}} { left: {{$index}}em; }	
-	.line .tag-{{$index}}.active { background: {{ if $stat.Good }} #bdbdff {{else}} #ffbdbd {{end}}; }
+	.line .tag-{{$index}} { left: {{mul $index 2}}em; }	
 	{{ end }}
 	</style>
 
@@ -238,16 +245,35 @@ var T = template.Must(template.New("").Parse(`
 				var tags = h("span", "tags");
 				lineel.appendChild(tags);
 
-				function addtag(i, match){
-					var count = 0;
+				function addtag(i, good, bad){
+					var goodCount = 0;
+					var badCount = 0;
+					
 					line.notes.forEach(note => {
-						if(note.message.indexOf(match) >= 0){
-							count++;
-						}
+						good.forEach(keyword => {
+							if(note.message.indexOf(keyword) >= 0){
+								goodCount++;
+							}
+						});
+						bad.forEach(keyword => {
+							if(note.message.indexOf(keyword) >= 0){
+								badCount++;
+							}
+						});
 					})
-					if(fullinfo.match(match)){
-						var el = h("span", "tag active tag-" + i, count);
-						el.title = match;
+
+					if(goodCount + badCount > 0){
+						var goodel = h("span", "good", goodCount);
+						if(goodCount > 0) goodel.className += " active";
+						goodel.title = good.join("\n");
+						
+						var badel = h("span", "bad", badCount);
+						if(badCount > 0) badel.className += " active";
+						badel.title = bad.join("\n");
+
+						var el = h("span", "tag active tag-" + i, [
+							goodel, "/", badel
+						]);
 						tags.appendChild(el);
 					} else {
 						tags.appendChild(h("span", "tag tag-" + i), "");
@@ -255,7 +281,7 @@ var T = template.Must(template.New("").Parse(`
 				}
 
 				{{range $index, $stat := .Stats }}
-				addtag({{$index}}, "{{$stat.Keyword}}");
+				addtag({{$index}}, {{$stat.Good}}, {{$stat.Bad}});
 				{{end}}
 
 				fragment.appendChild(lineel);
@@ -266,11 +292,23 @@ var T = template.Must(template.New("").Parse(`
 			source.appendChild(fragment);
 		}
 
-		function h(tag, className, text){
+		function h(tag, className, children){
 			var el = document.createElement(tag);
 			el.className = className;
-			if(text){
-				el.innerText = text;
+
+			if((typeof children == "string") || (typeof children == "number")){
+				children = [children];
+			} else if (typeof children == "undefined") {
+				children = [];
+			}
+
+			for(var i = 0; i < children.length; i++){
+				var child = children[i];
+				if(typeof child === "string" || typeof child == "number"){
+					el.appendChild(document.createTextNode(child));
+				} else {
+					el.appendChild(child);
+				}
 			}
 			return el;
 		}

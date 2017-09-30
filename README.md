@@ -11,6 +11,6 @@ go get github.com/loov/view-annotated-file
 ## Usage
 
 ```
-go build -a -gcflags "-m -m" project 2> escape.analysis
-view-annotated-file escape.analysis
+go build -a -gcflags "-m -m -d=ssa/check_bce/debug" project 2> analysis.log
+view-annotated-file analysis.log
 ```
