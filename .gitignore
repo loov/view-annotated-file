@@ -5,6 +5,8 @@ view-annotated-file
 *.a
 *.so
 
+.DS_Store
+
 # Temporary files
 *~*
 
