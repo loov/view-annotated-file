@@ -54,10 +54,13 @@ type Server struct {
 
 func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "" || r.URL.Path == "/" {
+		defaultPath := r.URL.Query().Get("path")
+
 		err := T.Execute(w, map[string]interface{}{
-			"StatCount": statCount,
-			"Stats":     statSpecs,
-			"Files":     server.Index.Files,
+			"StatCount":   statCount,
+			"Stats":       statSpecs,
+			"Files":       server.Index.Files,
+			"DefaultPath": defaultPath,
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
@@ -102,7 +105,7 @@ var T = template.Must(template.New("").Funcs(template.FuncMap{
 <body>
 	<select id="file" onchange="fileSelected()">
 		{{ range .Files }}
-		<option value="{{.Path}}">{{.AbsPath}} {{.Stats}}</option>
+		<option value="{{.Path}}" {{if eq .Path $.DefaultPath}} selected="selected" {{end}}>{{.AbsPath}} {{.Stats}}</option>
 		{{ end }}
 	</select>
 	<div id="source">
@@ -196,6 +199,11 @@ var T = template.Must(template.New("").Funcs(template.FuncMap{
 							response.json().then(updateSource);
 						}
 					})
+
+				const params = new URLSearchParams(location.search);
+				params.set('path', el.value);
+				location = '#';
+				location.search = params.toString();
 			}
 		}
 
