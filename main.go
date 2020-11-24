@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	addr = flag.String("http", ":8080", "listen on http")
+	addr = flag.String("http", "127.0.0.1:8080", "listen on http")
 )
 
 func main() {
