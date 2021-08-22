@@ -137,6 +137,7 @@ var T = template.Must(template.New("").Funcs(template.FuncMap{
 		position: absolute;
 		display: block;
 		white-space: pre;
+		font-family: monospace;
 		left: var(--number-width);
 		right: calc(var(--info-width) + var(--tags-width));
 		top: 0; bottom: 0;
