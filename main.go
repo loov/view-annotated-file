@@ -17,13 +17,20 @@ var (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	flag.Parse()
+
 	var rd io.Reader = os.Stdin
 	if flag.Arg(0) != "" {
 		file, err := os.Open(flag.Arg(0))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to open file: %w", err)
 		}
 		defer file.Close()
 		rd = file
@@ -31,8 +38,7 @@ func main() {
 
 	data, err := io.ReadAll(rd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to read data: %w", err)
 	}
 
 	index := NewIndex()
@@ -43,9 +49,9 @@ func main() {
 	fmt.Printf("Listening on http://%v\n", *addr)
 	err = http.ListenAndServe(*addr, &Server{index})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("listening failed: %w", err)
 	}
+	return nil
 }
 
 type Server struct {
