@@ -2,13 +2,13 @@ package main
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
 type AnnotatedFile struct {
 	Path    string `json:"path"`
-	AbsPath string `json:"path"`
+	AbsPath string `json:"abspath"`
 	Lines   []Line `json:"lines"`
 }
 
@@ -28,7 +28,7 @@ func (index *Index) LoadAnnotatedFile(path string) (*AnnotatedFile, error) {
 		return nil, errors.New("not found")
 	}
 
-	data, err := ioutil.ReadFile(info.AbsPath)
+	data, err := os.ReadFile(info.AbsPath)
 	if err != nil {
 		return nil, err
 	}
